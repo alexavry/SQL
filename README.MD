@@ -320,7 +320,3 @@ Définit une valeur par défaut pour une colonne.
 ```sql
 CREATE TABLE table_name (column_name datatype DEFAULT value);
 ```
-
----
-
-Cette cheat sheet couvre les bases du SQL et devrait vous aider à démarrer avec les requêtes SQL les plus courantes. Si vous avez des questions ou besoin de plus d'informations, n'hésitez pas à demander !
