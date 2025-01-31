@@ -181,17 +181,17 @@ INSERT INTO lignesFic (noFic, noLig,  refart, depart, retour) VALUES
     (1007, 4, 'S02', DATE_SUB(NOW(),INTERVAL  0 DAY), NULL),
     (1008, 1, 'S01', DATE_SUB(NOW(),INTERVAL  0 DAY), NULL);
 
-//Requete 1 :
+//1️⃣ Liste des clients (toutes les informations) dont le nom commence par un D
 SELECT * FROM clients
 WHERE nom LIKE 'D%';
 
-//Requete 3 :
+//3️⃣ Liste des fiches (n°, état) pour les clients (nom, prénom) qui habitent en Loire Atlantique (44)
 SELECT fiches.noFic, fiches.etat, clients.nom, clients.prenom
 FROM fiches
 JOIN clients ON fiches.noCli = clients.noCli
 WHERE clients.cpo LIKE '44%';
 
-//Requete 4 :
+//4️⃣ Détail de la fiche n°1002
 SELECT f.noFic, f.etat, f.dateCrea, f.datePaiement, 
        c.nom, c.prenom, c.adresse, c.cpo, c.ville
 FROM fiches f
@@ -199,30 +199,36 @@ JOIN clients c ON f.noCli = c.noCli
 WHERE f.noFic = 1002;
 //ça ne fonctionne pas bien
 
-//Requete 5 :
+//5️⃣ Prix journalier moyen de location par gamme
 SELECT g.codeGam, g.libelle, AVG(t.prixJour) AS prix_moyen_journalier
 FROM grilleTarifs gt
 JOIN gammes g ON gt.codeGam = g.codeGam
 JOIN tarifs t ON gt.codeTarif = t.codeTarif
 GROUP BY g.codeGam, g.libelle;
 
-//Requete 6 :
-SELECT noFic,nom,prenom,refart,designation,depart,retour,prixJour,montant, SUM(montant) OVER () as Total
-From (
-SELECT fiches.noFic,nom,prenom,lignesFic.refart,designation,depart,retour,prixJour,(DATEDIFF(COALESCE(lignesFic.retour, NOW()), lignesFic.depart)+1) * tarifs.prixJour AS montant
-from clients
+//6️⃣ Détail de la fiche n°1002 avec le total
+SELECT noFic,nom,prenom,refart,designation,depart,retour,prixJour,montant, SUM(montant) OVER () AS Total
+FROM (
+SELECT fiches.noFic,nom,prenom,lignesFic.refart,designation,depart,retour,prixJour,(DATEDIFF(COALESCE(lignesFic.retour, 
+NOW()), lignesFic.depart)+1) * tarifs.prixJour AS montant
+FROM clients
 INNER JOIN fiches ON clients.noCLi = fiches.noCli
-INNER JOIN lignesFic on fiches.noFic = lignesFic.noFic
-INNER JOIN articles on lignesFic.refart = articles.refart
+INNER JOIN lignesFic ON fiches.noFic = lignesFic.noFic
+INNER JOIN articles ON lignesFic.refart = articles.refart
 INNER JOIN grilleTarifs ON articles.codeCate = grilleTarifs.codeCate
-INNER JOIN tarifs on grilleTarifs.codeTarif = tarifs.codeTarif
-where fiches.noFic = 1002
+INNER JOIN tarifs ON grilleTarifs.codeTarif = tarifs.codeTarif
+WHERE fiches.noFic = 1002
 GROUP BY refArt
-) as t
+) AS t
 
-//Requete 7 :
+//7️⃣ Grille des tarifs
 SELECT g.libelle AS Gamme, c.libelle AS Categorie, t.libelle AS Tarif, t.prixJour
 FROM grilleTarifs gt
 JOIN gammes g ON gt.codeGam = g.codeGam
 JOIN categories c ON gt.codeCate = c.codeCate
 JOIN tarifs t ON gt.codeTarif = t.codeTarif;
+
+//9️⃣ Calcul du nombre moyen d’articles loués par fiche de location
+SELECT AVG(article_count) AS moyenne_articles_par_fiche 
+FROM ( SELECT f.noFic, COUNT(l.refart) AS article_count FROM fiches f 
+JOIN lignesFic l ON f.noFic = l.noFic GROUP BY f.noFic ) AS sous_requete;
