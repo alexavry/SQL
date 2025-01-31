@@ -1,6 +1,3 @@
-Bien sûr ! Voici une cheat sheet complète pour les bases du SQL :
-
----
 
 # SQL Cheat Sheet
 
