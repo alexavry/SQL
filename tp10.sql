@@ -192,11 +192,13 @@ JOIN clients ON fiches.noCli = clients.noCli
 WHERE clients.cpo LIKE '44%';
 
 //4️⃣ Détail de la fiche n°1002
-SELECT f.noFic, f.etat, f.dateCrea, f.datePaiement, c.nom, c.prenom, c.adresse, c.cpo, c.ville
+SELECT f.noFic, f.dateCrea, f.datePaiement, f.etat, 
+       c.nom, c.prenom, a.refart, a.designation, l.depart, l.retour
 FROM fiches f
 JOIN clients c ON f.noCli = c.noCli
+JOIN lignesfic l ON f.noFic = l.noFic
+JOIN articles a ON l.refart = a.refart
 WHERE f.noFic = 1002;
-//ça ne fonctionne pas bien
 
 //5️⃣ Prix journalier moyen de location par gamme
 SELECT g.codeGam, g.libelle, AVG(t.prixJour) AS prix_moyen_journalier
@@ -227,7 +229,29 @@ JOIN gammes g ON gt.codeGam = g.codeGam
 JOIN categories c ON gt.codeCate = c.codeCate
 JOIN tarifs t ON gt.codeTarif = t.codeTarif;
 
+// 8️⃣ Liste des locations de la catégorie SURF
+SELECT f.noFic, f.dateCrea, f.datePaiement, f.etat, 
+       c.nom, c.prenom, a.refart, a.designation, l.depart, l.retour, 
+       t.prixJour, 
+       DATEDIFF(IFNULL(l.retour, CURDATE()), l.depart) * t.prixJour AS total_par_article
+FROM fiches f
+JOIN clients c ON f.noCli = c.noCli
+JOIN lignesfic l ON f.noFic = l.noFic
+JOIN articles a ON l.refart = a.refart
+JOIN grilletarifs gt ON a.codeGam = gt.codeGam AND a.codeCate = gt.codeCate
+JOIN tarifs t ON gt.codeTarif = t.codeTarif
+WHERE a.codeCate = 'SURF';
+
 //9️⃣ Calcul du nombre moyen d’articles loués par fiche de location
 SELECT AVG(article_count) AS moyenne_articles_par_fiche 
 FROM ( SELECT f.noFic, COUNT(l.refart) AS article_count FROM fiches f 
 JOIN lignesFic l ON f.noFic = l.noFic GROUP BY f.noFic ) AS sous_requete;
+
+// 10️ Calcul du nombre de fiches de location établies pour les catégories de location Ski alpin, Surf et Patinette
+SELECT c.libelle AS categorie, COUNT(DISTINCT f.noFic) AS nombre_de_fiches
+FROM fiches f
+JOIN lignesfic l ON f.noFic = l.noFic
+JOIN articles a ON l.refart = a.refart
+JOIN categories c ON a.codeCate = c.codeCate
+WHERE c.libelle IN ('Ski alpin', 'Surf', 'Patinette')
+GROUP BY c.libelle;
