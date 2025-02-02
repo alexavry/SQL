@@ -192,8 +192,7 @@ JOIN clients ON fiches.noCli = clients.noCli
 WHERE clients.cpo LIKE '44%';
 
 //4️⃣ Détail de la fiche n°1002
-SELECT f.noFic, f.etat, f.dateCrea, f.datePaiement, 
-       c.nom, c.prenom, c.adresse, c.cpo, c.ville
+SELECT f.noFic, f.etat, f.dateCrea, f.datePaiement, c.nom, c.prenom, c.adresse, c.cpo, c.ville
 FROM fiches f
 JOIN clients c ON f.noCli = c.noCli
 WHERE f.noFic = 1002;
